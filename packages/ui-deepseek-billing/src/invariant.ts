@@ -1,30 +1,33 @@
-{
-  "name": "developer-utility-extension",
-  "version": "0.1.0",
-  "private": true,
-  "type": "module",
-  "packageManager": "pnpm@9.15.9",
-  "scripts": {
-    "dev": "vite --host 127.0.0.1",
-    "build": "pnpm typecheck && vite build",
-    "typecheck": "vue-tsc --noEmit -p tsconfig.json && tsc --noEmit -p tsconfig.node.json",
-    "test": "vitest run",
-    "test:watch": "vitest"
-  },
-  "dependencies": {
-    "pinia": "^2.3.0",
-    "vue": "^3.5.13",
-    "vue-router": "^4.5.0",
-    "webextension-polyfill": "^0.12.0"
-  },
-  "devDependencies": {
-    "@vitejs/plugin-vue": "^6.0.7",
-    "@types/chrome": "^0.0.287",
-    "@types/node": "^22.10.2",
-    "@types/webextension-polyfill": "^0.12.3",
-    "typescript": "^5.7.2",
-    "vite": "^8.0.16",
-    "vitest": "^4.1.8",
-    "vue-tsc": "^3.3.4"
-  }
-}
+/**
+ * Package-owned invariant companion for `@deepseek-ai/dsh-client-ui-deepseek-billing`.
+ * @module @deepseek-ai/dsh-client-ui-deepseek-billing/invariant
+ */
+
+/* jscpd:ignore-start */
+import type { Context } from '@deepseek-ai/cordis'
+import type { InvariantInstaller } from '@deepseek-ai/dsh-invariants'
+
+const PACKAGE_NAME = '@deepseek-ai/dsh-client-ui-deepseek-billing'
+
+/** Cordis companion plugin name. */
+export const name = 'client-ui-deepseek-billing-invariant'
+/** Service required before the companion can reserve package ownership. */
+export const inject = ['invariants']
+
+/**
+ * No runtime invariant: this package is a read-only projection of the
+ * `tokenUsage` session projection plus one host HTTP route onto one header
+ * slot entry. It emits no cordis events, owns no cross-plugin mutable state,
+ * and its single slot registration proves disposal through the HMR-safety
+ * spec.
+ */
+const install: InvariantInstaller = () => {}
+
+/**
+ * Register this package's invariant companion.
+ * @param ctx - Cordis context carrying the invariant service.
+ * @returns the installed registration's disposer after setup succeeds.
+ */
+export const apply = (ctx: Context): Promise<() => void> =>
+  Promise.resolve(ctx.invariants.register(PACKAGE_NAME, install))
+/* jscpd:ignore-end */

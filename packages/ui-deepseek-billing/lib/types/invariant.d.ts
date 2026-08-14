@@ -1,30 +1,16 @@
-{
-  "name": "developer-utility-extension",
-  "version": "0.1.0",
-  "private": true,
-  "type": "module",
-  "packageManager": "pnpm@9.15.9",
-  "scripts": {
-    "dev": "vite --host 127.0.0.1",
-    "build": "pnpm typecheck && vite build",
-    "typecheck": "vue-tsc --noEmit -p tsconfig.json && tsc --noEmit -p tsconfig.node.json",
-    "test": "vitest run",
-    "test:watch": "vitest"
-  },
-  "dependencies": {
-    "pinia": "^2.3.0",
-    "vue": "^3.5.13",
-    "vue-router": "^4.5.0",
-    "webextension-polyfill": "^0.12.0"
-  },
-  "devDependencies": {
-    "@vitejs/plugin-vue": "^6.0.7",
-    "@types/chrome": "^0.0.287",
-    "@types/node": "^22.10.2",
-    "@types/webextension-polyfill": "^0.12.3",
-    "typescript": "^5.7.2",
-    "vite": "^8.0.16",
-    "vitest": "^4.1.8",
-    "vue-tsc": "^3.3.4"
-  }
-}
+/**
+ * Package-owned invariant companion for `@deepseek-ai/dsh-client-ui-deepseek-billing`.
+ * @module @deepseek-ai/dsh-client-ui-deepseek-billing/invariant
+ */
+import type { Context } from '@deepseek-ai/cordis';
+/** Cordis companion plugin name. */
+export declare const name = "client-ui-deepseek-billing-invariant";
+/** Service required before the companion can reserve package ownership. */
+export declare const inject: string[];
+/**
+ * Register this package's invariant companion.
+ * @param ctx - Cordis context carrying the invariant service.
+ * @returns the installed registration's disposer after setup succeeds.
+ */
+export declare const apply: (ctx: Context) => Promise<() => void>;
+//# sourceMappingURL=invariant.d.ts.map

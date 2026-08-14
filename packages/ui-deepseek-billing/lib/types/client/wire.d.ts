@@ -1,30 +1,40 @@
-{
-  "name": "developer-utility-extension",
-  "version": "0.1.0",
-  "private": true,
-  "type": "module",
-  "packageManager": "pnpm@9.15.9",
-  "scripts": {
-    "dev": "vite --host 127.0.0.1",
-    "build": "pnpm typecheck && vite build",
-    "typecheck": "vue-tsc --noEmit -p tsconfig.json && tsc --noEmit -p tsconfig.node.json",
-    "test": "vitest run",
-    "test:watch": "vitest"
-  },
-  "dependencies": {
-    "pinia": "^2.3.0",
-    "vue": "^3.5.13",
-    "vue-router": "^4.5.0",
-    "webextension-polyfill": "^0.12.0"
-  },
-  "devDependencies": {
-    "@vitejs/plugin-vue": "^6.0.7",
-    "@types/chrome": "^0.0.287",
-    "@types/node": "^22.10.2",
-    "@types/webextension-polyfill": "^0.12.3",
-    "typescript": "^5.7.2",
-    "vite": "^8.0.16",
-    "vitest": "^4.1.8",
-    "vue-tsc": "^3.3.4"
-  }
+/**
+ * Wire contract of the host's balance route (`/api/deepseek-billing/balance`,
+ * registered by the out-of-tree `deepseek-billing` host plugin). The shape is
+ * duplicated here deliberately: client bundles cannot value-import host
+ * packages, and the host half is out-of-tree by design.
+ */
+/** One normalized balance record from the host route. */
+export interface ClientBalanceRecord {
+    currency: string;
+    totalBalance: number;
+    grantedBalance: number;
+    toppedUpBalance: number;
 }
+/** Normalized balance from the host route. */
+export interface ClientBalanceInfo {
+    isAvailable: boolean;
+    records: ClientBalanceRecord[];
+}
+/** Error codes the widget maps to localized copy. */
+export type ClientBalanceErrorCode = 'BAD_RESPONSE' | 'MISSING_KEY' | 'UNAUTHORIZED' | 'HTTP_ERROR' | 'NETWORK_ERROR' | 'INVALID_PAYLOAD';
+/** Success or failure body of the host route. */
+export type ClientBalanceBody = {
+    ok: true;
+    balance: ClientBalanceInfo;
+} | {
+    ok: false;
+    error: {
+        code: ClientBalanceErrorCode;
+        message?: string;
+    };
+};
+/**
+ * Parse and validate the host route's JSON body. Every malformed shape maps
+ * to a typed failure instead of throwing, so the widget never crashes on a
+ * proxy page or a broken host half.
+ * @param value - parsed JSON body.
+ * @returns the validated body.
+ */
+export declare function parseBalanceBody(value: unknown): ClientBalanceBody;
+//# sourceMappingURL=wire.d.ts.map

@@ -1,30 +1,123 @@
-{
-  "name": "developer-utility-extension",
-  "version": "0.1.0",
-  "private": true,
-  "type": "module",
-  "packageManager": "pnpm@9.15.9",
-  "scripts": {
-    "dev": "vite --host 127.0.0.1",
-    "build": "pnpm typecheck && vite build",
-    "typecheck": "vue-tsc --noEmit -p tsconfig.json && tsc --noEmit -p tsconfig.node.json",
-    "test": "vitest run",
-    "test:watch": "vitest"
-  },
-  "dependencies": {
-    "pinia": "^2.3.0",
-    "vue": "^3.5.13",
-    "vue-router": "^4.5.0",
-    "webextension-polyfill": "^0.12.0"
-  },
-  "devDependencies": {
-    "@vitejs/plugin-vue": "^6.0.7",
-    "@types/chrome": "^0.0.287",
-    "@types/node": "^22.10.2",
-    "@types/webextension-polyfill": "^0.12.3",
-    "typescript": "^5.7.2",
-    "vite": "^8.0.16",
-    "vitest": "^4.1.8",
-    "vue-tsc": "^3.3.4"
-  }
-}
+diff --git a/packages/client/ui-conversation/src/client/apply.ts b/packages/client/ui-conversation/src/client/apply.ts
+index f57caea9e5..964c41bf30 100644
+--- a/packages/client/ui-conversation/src/client/apply.ts
++++ b/packages/client/ui-conversation/src/client/apply.ts
+@@ -426,7 +426,15 @@ export function apply(ctx: Context): void {
+   }, ChatView)
+ 
+   // Session stats stick with the composer (composer.dock = stats-line family).
+-  slots.register({ name: 'conversation.composer.dock', id: 'stats', order: 0, locale: NS }, StatsLine)
++  // The stats entry declares the strip's extra-group child slot, so optional
++  // plugins append pipe-separated readouts into the shipped line.
++  slots.register({
++    name: 'conversation.composer.dock',
++    id: 'stats',
++    order: 0,
++    locale: NS,
++    children: { 'conversation.composer.stats.extra': { kind: 'list', scope: 'session' } },
++  }, StatsLine)
+ 
+   // Class-plugin mount (packages/AGENTS.md service form): the service
+   // registers itself as `conversation` and lives on its own child fiber.
+diff --git a/packages/client/ui-conversation/src/client/chat/StatsLine.tsx b/packages/client/ui-conversation/src/client/chat/StatsLine.tsx
+index 147d2b7c6c..1a6d4ff4c2 100644
+--- a/packages/client/ui-conversation/src/client/chat/StatsLine.tsx
++++ b/packages/client/ui-conversation/src/client/chat/StatsLine.tsx
+@@ -5,7 +5,7 @@
+ import { Fragment, memo, useLayoutEffect, useMemo, useRef, useState } from 'react'
+ import { Tooltip } from '@deepseek-ai/dsh-client-ui-primitives'
+ import type { ConversationSnapshot, UseProjection } from '@deepseek-ai/dsh-client-runtime/client'
+-import type { SnapshotSelectorHook } from '@deepseek-ai/dsh-client-ui-slots'
++import type { PropsRenderSlots, SnapshotSelectorHook } from '@deepseek-ai/dsh-client-ui-slots'
+ // Type-only: merges the sessionStats key into SessionProjectionMap for useProjection.
+ import type {} from '@deepseek-ai/dsh-session-stats/client'
+ import type { ContextPressureProjection, TokenUsageProjection } from '@deepseek-ai/dsh-token-meter/client'
+@@ -153,14 +153,14 @@ export function contextOccupancy(
+ }
+ 
+ /** Props: the conversation-snapshot selector plus the projection read seat. */
+-export interface StatsLineProps {
++export interface StatsLineProps extends PropsRenderSlots<'conversation.composer.stats.extra'> {
+   useSession: SnapshotSelectorHook<ConversationSnapshot>
+   useProjection: UseProjection
+   /** The owning dock's locale seat. */
+   t: ComposerBarProps['t']
+ }
+ 
+-export const StatsLine = memo(function StatsLine({ useSession, useProjection, t }: StatsLineProps) {
++export const StatsLine = memo(function StatsLine({ useSession, useProjection, t, renderSlot }: StatsLineProps) {
+   const settledNodes = useSession(s => s.chat.legacy.nodes)
+   const usage = useProjection('tokenUsage')
+   // Every figure rides the durable sessionStats projection, so paging and
+@@ -171,8 +171,8 @@ export const StatsLine = memo(function StatsLine({ useSession, useProjection, t
+   const stats = useMemo(() => projected ?? deriveStats(settledNodes), [projected, settledNodes])
+   // Pipe-separated groups (figma stats strip); a group with no data drops out whole.
+   const groups: string[] = []
++  const counts = stats.steps > 0 ? t('stats.counts', { turns: stats.turns, steps: stats.steps }) : undefined
+   if (stats.steps > 0) {
+-    groups.push(t('stats.counts', { turns: stats.turns, steps: stats.steps }))
+     const durations: string[] = []
+     if (stats.llmMs > 0) durations.push(t('stats.llm', { duration: formatDuration(stats.llmMs) }))
+     if (stats.toolMs > 0) durations.push(t('stats.toolCall', { duration: formatDuration(stats.toolMs) }))
+@@ -203,7 +203,13 @@ export const StatsLine = memo(function StatsLine({ useSession, useProjection, t
+       output: formatTokens(usage.outputTokens),
+     }))
+   }
+-  const line = groups.join(' | ')
++  // Optional plugins contribute extra inline groups to the strip. Extras own
++  // their separator and hover detail, so an absent contribution adds nothing,
++  // and the money-style group stays right after the counts (the first thing a
++  // truncating line eats is the tail — extras must not live there). The
++  // string-only tooltip carries the shipped groups.
++  const extras = renderSlot('conversation.composer.stats.extra', {})
++  const line = [counts, ...groups].filter((group): group is string => group !== undefined).join(' | ')
+   // The row elides with ellipsis when overlong; a delayed hover tooltip carries
+   // the full line, enabled only while content is actually clipped.
+   const rootRef = useRef<HTMLDivElement | null>(null)
+@@ -218,13 +224,23 @@ export const StatsLine = memo(function StatsLine({ useSession, useProjection, t
+     observer.observe(el)
+     return () => { observer.disconnect() }
+   }, [line])
+-  if (groups.length === 0) return null
++  if (counts === undefined && groups.length === 0 && extras === null) return null
+   return (
+-    <Tooltip label={line} side="top" delayMs={500} disabled={!truncated}>
++    <Tooltip label={line} side="top" delayMs={500} disabled={!truncated || line.length === 0}>
+       <div ref={rootRef} className={css.root}>
++        {counts !== undefined
++          ? (
++            <Fragment key={0}>
++              <span>{counts}</span>
++            </Fragment>
++          )
++          : null}
++        {extras}
+         {groups.map((group, i) => (
+-          <Fragment key={group}>
+-            {i > 0 && <><span className={css.sep} aria-hidden>|</span>{' '}</>}
++          <Fragment key={i + 1}>
++            {i > 0 || counts !== undefined
++              ? <><span className={css.sep} aria-hidden>|</span>{' '}</>
++              : null}
+             <span>{group}</span>
+           </Fragment>
+         ))}
+diff --git a/packages/client/ui-conversation/src/client/contract/slots.ts b/packages/client/ui-conversation/src/client/contract/slots.ts
+index 21259146a7..ee56f3d5b0 100644
+--- a/packages/client/ui-conversation/src/client/contract/slots.ts
++++ b/packages/client/ui-conversation/src/client/contract/slots.ts
+@@ -168,6 +168,14 @@ declare module '@deepseek-ai/dsh-client-ui-slots' {
+      * above the card belongs in `conversation.input.dock`.
+      */
+     'conversation.composer.dock': { kind: 'list'; scope: 'session'; owner: InputZone }
++    /**
++     * Extra pipe-separated groups appended to the composer stats strip
++     * (declared by the stats entry itself, so contributors join the shipped
++     * line instead of stacking a second row). Each entry renders a short
++     * inline label; the framework hands it the full session kit, so entries
++     * read projections directly.
++     */
++    'conversation.composer.stats.extra': { kind: 'list'; scope: 'session' }
+     /**
+      * The left end of the tool row INSIDE the composer card, after the
+      * resident chrome (access mode, plan, attach) — the seat for a small

@@ -1,30 +1,16 @@
-{
-  "name": "developer-utility-extension",
-  "version": "0.1.0",
-  "private": true,
-  "type": "module",
-  "packageManager": "pnpm@9.15.9",
-  "scripts": {
-    "dev": "vite --host 127.0.0.1",
-    "build": "pnpm typecheck && vite build",
-    "typecheck": "vue-tsc --noEmit -p tsconfig.json && tsc --noEmit -p tsconfig.node.json",
-    "test": "vitest run",
-    "test:watch": "vitest"
-  },
-  "dependencies": {
-    "pinia": "^2.3.0",
-    "vue": "^3.5.13",
-    "vue-router": "^4.5.0",
-    "webextension-polyfill": "^0.12.0"
-  },
-  "devDependencies": {
-    "@vitejs/plugin-vue": "^6.0.7",
-    "@types/chrome": "^0.0.287",
-    "@types/node": "^22.10.2",
-    "@types/webextension-polyfill": "^0.12.3",
-    "typescript": "^5.7.2",
-    "vite": "^8.0.16",
-    "vitest": "^4.1.8",
-    "vue-tsc": "^3.3.4"
-  }
-}
+# DeepSeek 余额/会话费用插件（bundle 补丁层）。
+# 安装本包（如 `dsh plugin add @deepseek-ai/dsh-deepseek-billing`）后，
+# 该补丁随 bundle 自动叠加：宿主半边注册余额路由，客户端半边挂载 UI。
+# 两行都按包名挂载，不包含任何机器相关路径。
+
+- insert:
+    - id: deepseek-billing
+      name: '@deepseek-ai/dsh-deepseek-billing'
+      config:
+        # 余额接口地址（官方公共 API）。
+        baseURL: 'https://api.deepseek.com'
+        # API Key 来源：环境变量 / credentials 域引用；也可直接填字面量 apiKey。
+        apiKeyEnv: DEEPSEEK_API_KEY
+
+    - id: ui-deepseek-billing
+      name: '@deepseek-ai/dsh-client-ui-deepseek-billing'

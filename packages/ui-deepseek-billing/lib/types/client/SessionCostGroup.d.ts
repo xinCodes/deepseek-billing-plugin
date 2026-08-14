@@ -1,30 +1,23 @@
-{
-  "name": "developer-utility-extension",
-  "version": "0.1.0",
-  "private": true,
-  "type": "module",
-  "packageManager": "pnpm@9.15.9",
-  "scripts": {
-    "dev": "vite --host 127.0.0.1",
-    "build": "pnpm typecheck && vite build",
-    "typecheck": "vue-tsc --noEmit -p tsconfig.json && tsc --noEmit -p tsconfig.node.json",
-    "test": "vitest run",
-    "test:watch": "vitest"
-  },
-  "dependencies": {
-    "pinia": "^2.3.0",
-    "vue": "^3.5.13",
-    "vue-router": "^4.5.0",
-    "webextension-polyfill": "^0.12.0"
-  },
-  "devDependencies": {
-    "@vitejs/plugin-vue": "^6.0.7",
-    "@types/chrome": "^0.0.287",
-    "@types/node": "^22.10.2",
-    "@types/webextension-polyfill": "^0.12.3",
-    "typescript": "^5.7.2",
-    "vite": "^8.0.16",
-    "vitest": "^4.1.8",
-    "vue-tsc": "^3.3.4"
-  }
-}
+import type { PropsLocale, PropsRuntime } from '@deepseek-ai/dsh-client-ui-slots';
+import type { ConversationNode } from '@deepseek-ai/dsh-client-runtime/client';
+import { NS } from './locales.ts';
+/** Model priced when the visible window carries no request config. */
+export declare const DEFAULT_MODEL = "deepseek-v4-pro";
+/**
+ * Latest model id in the visible window, preferring assistant nodes that
+ * carry a request config. The projection totals span the whole log while the
+ * window is paged, so a model switched mid-session prices everything with the
+ * newest one — the tooltip note covers the difference.
+ * @param nodes - conversation nodes in display order.
+ * @returns the newest model id, or undefined when no node carries one.
+ */
+export declare function latestModel(nodes: readonly ConversationNode[]): string | undefined;
+/** Full props for the stats-extra group. */
+export type SessionCostGroupProps = PropsRuntime<'conversation.composer.stats.extra'> & PropsLocale<typeof NS>;
+/**
+ * Inline cost label for the composer stats strip.
+ * @param props - runtime slot currency plus the namespace translator.
+ * @returns the label, or null when the session has no settled usage.
+ */
+export declare function SessionCostGroup({ useSession, useProjection, t }: SessionCostGroupProps): import("react").JSX.Element | null;
+//# sourceMappingURL=SessionCostGroup.d.ts.map

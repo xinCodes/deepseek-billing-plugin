@@ -1,30 +1,26 @@
-{
-  "name": "developer-utility-extension",
-  "version": "0.1.0",
-  "private": true,
-  "type": "module",
-  "packageManager": "pnpm@9.15.9",
-  "scripts": {
-    "dev": "vite --host 127.0.0.1",
-    "build": "pnpm typecheck && vite build",
-    "typecheck": "vue-tsc --noEmit -p tsconfig.json && tsc --noEmit -p tsconfig.node.json",
-    "test": "vitest run",
-    "test:watch": "vitest"
-  },
-  "dependencies": {
-    "pinia": "^2.3.0",
-    "vue": "^3.5.13",
-    "vue-router": "^4.5.0",
-    "webextension-polyfill": "^0.12.0"
-  },
-  "devDependencies": {
-    "@vitejs/plugin-vue": "^6.0.7",
-    "@types/chrome": "^0.0.287",
-    "@types/node": "^22.10.2",
-    "@types/webextension-polyfill": "^0.12.3",
-    "typescript": "^5.7.2",
-    "vite": "^8.0.16",
-    "vitest": "^4.1.8",
-    "vue-tsc": "^3.3.4"
-  }
+import { BalanceAction } from "./BalanceAction.js";
+import { SessionCostGroup } from "./SessionCostGroup.js";
+import { en, NS, zh } from "./locales.js";
+/** Required services: the two slots, the session kit, and the copy. */
+export const inject = ['sessions', 'slots', 'locale'];
+/**
+ * Client plugin body: register the dictionaries and the two surfaces.
+ * @param ctx - client root context.
+ */
+export function apply(ctx) {
+    ctx.effect(() => ctx.locale.register(NS, { zh, en }), 'ui-deepseek-billing: dictionaries');
+    ctx.slots.inject('conversation.session.header.actions', () => ctx.slots.register({
+        name: 'conversation.session.header.actions',
+        id: 'deepseek-billing',
+        // After the job list: process work reads before account figures.
+        order: 30,
+        locale: NS,
+    }, BalanceAction));
+    ctx.slots.inject('conversation.composer.stats.extra', () => ctx.slots.register({
+        name: 'conversation.composer.stats.extra',
+        id: 'billing-cost',
+        order: 0,
+        locale: NS,
+    }, SessionCostGroup));
 }
+//# sourceMappingURL=index.js.map

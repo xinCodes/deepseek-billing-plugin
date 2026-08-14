@@ -1,30 +1,55 @@
-{
-  "name": "developer-utility-extension",
-  "version": "0.1.0",
-  "private": true,
-  "type": "module",
-  "packageManager": "pnpm@9.15.9",
-  "scripts": {
-    "dev": "vite --host 127.0.0.1",
-    "build": "pnpm typecheck && vite build",
-    "typecheck": "vue-tsc --noEmit -p tsconfig.json && tsc --noEmit -p tsconfig.node.json",
-    "test": "vitest run",
-    "test:watch": "vitest"
-  },
-  "dependencies": {
-    "pinia": "^2.3.0",
-    "vue": "^3.5.13",
-    "vue-router": "^4.5.0",
-    "webextension-polyfill": "^0.12.0"
-  },
-  "devDependencies": {
-    "@vitejs/plugin-vue": "^6.0.7",
-    "@types/chrome": "^0.0.287",
-    "@types/node": "^22.10.2",
-    "@types/webextension-polyfill": "^0.12.3",
-    "typescript": "^5.7.2",
-    "vite": "^8.0.16",
-    "vitest": "^4.1.8",
-    "vue-tsc": "^3.3.4"
-  }
-}
+/** `billing` namespace dictionaries. */
+
+/** Dictionary namespace owned by this plugin. */
+export const NS = 'billing'
+
+/** Simplified Chinese dictionary (the key-set source of truth). */
+export const zh = {
+  'trigger.label': '余额',
+  'trigger.aria': '查看 DeepSeek 账户余额',
+  'balance.title': 'DeepSeek 账户余额',
+  'balance.unavailable': '账户当前不可用（is_available=false）',
+  'balance.total': '总余额',
+  'balance.granted': '赠送余额',
+  'balance.toppedUp': '充值余额',
+  'balance.empty': '暂无余额记录',
+  'balance.missingKey': '未配置 API Key（环境变量 DEEPSEEK_API_KEY 或插件配置 apiKey）',
+  'balance.refresh': '刷新余额',
+  'balance.refreshing': '刷新中…',
+  'balance.networkError': '网络错误：无法连接 DeepSeek API',
+  'balance.unauthorized': 'API Key 无效（HTTP 401），请在开放平台核对',
+  'balance.httpError': 'DeepSeek API 请求失败（HTTP {status}）',
+  'balance.invalidPayload': '余额响应无法解析',
+  'cost.group': '会话 ¥{amount}',
+  'cost.tooltip': '{model} · 未命中 ¥{miss} · 命中 ¥{hit} · 输出 ¥{output} · 合计 ¥{total}（{tier}，估算）',
+  'cost.tier.peak': '高峰时段',
+  'cost.tier.offPeak': '空闲时段',
+  'cost.tier.flat': '统一价',
+} as const
+
+/** English dictionary, key-identical to the Chinese source of truth. */
+export const en: Record<BillingKey, string> = {
+  'trigger.label': 'Balance',
+  'trigger.aria': 'Show the DeepSeek account balance',
+  'balance.title': 'DeepSeek account balance',
+  'balance.unavailable': 'Account currently unavailable (is_available=false)',
+  'balance.total': 'Total balance',
+  'balance.granted': 'Granted balance',
+  'balance.toppedUp': 'Topped-up balance',
+  'balance.empty': 'No balance records',
+  'balance.missingKey': 'No API key configured (env DEEPSEEK_API_KEY or plugin config apiKey)',
+  'balance.refresh': 'Refresh balance',
+  'balance.refreshing': 'Refreshing…',
+  'balance.networkError': 'Network error: could not reach the DeepSeek API',
+  'balance.unauthorized': 'API key rejected (HTTP 401); verify it on the open platform',
+  'balance.httpError': 'DeepSeek API request failed (HTTP {status})',
+  'balance.invalidPayload': 'Balance response could not be parsed',
+  'cost.group': 'session ¥{amount}',
+  'cost.tooltip': '{model} · miss ¥{miss} · hit ¥{hit} · output ¥{output} · total ¥{total} ({tier}, estimate)',
+  'cost.tier.peak': 'peak hours',
+  'cost.tier.offPeak': 'off-peak hours',
+  'cost.tier.flat': 'flat pricing',
+} as const
+
+/** Key domain of the `billing` namespace (zh is the source of truth). */
+export type BillingKey = keyof typeof zh

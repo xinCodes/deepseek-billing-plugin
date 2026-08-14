@@ -1,30 +1,28 @@
-{
-  "name": "developer-utility-extension",
-  "version": "0.1.0",
-  "private": true,
-  "type": "module",
-  "packageManager": "pnpm@9.15.9",
-  "scripts": {
-    "dev": "vite --host 127.0.0.1",
-    "build": "pnpm typecheck && vite build",
-    "typecheck": "vue-tsc --noEmit -p tsconfig.json && tsc --noEmit -p tsconfig.node.json",
-    "test": "vitest run",
-    "test:watch": "vitest"
-  },
-  "dependencies": {
-    "pinia": "^2.3.0",
-    "vue": "^3.5.13",
-    "vue-router": "^4.5.0",
-    "webextension-polyfill": "^0.12.0"
-  },
-  "devDependencies": {
-    "@vitejs/plugin-vue": "^6.0.7",
-    "@types/chrome": "^0.0.287",
-    "@types/node": "^22.10.2",
-    "@types/webextension-polyfill": "^0.12.3",
-    "typescript": "^5.7.2",
-    "vite": "^8.0.16",
-    "vitest": "^4.1.8",
-    "vue-tsc": "^3.3.4"
-  }
+/**
+ * Billing plugin, browser half, two surfaces:
+ * - the session-header action shows the DeepSeek ACCOUNT BALANCE (fetched
+ *   from the host route registered by the out-of-tree `deepseek-billing` host
+ *   plugin; see wire.ts);
+ * - a `conversation.composer.stats.extra` group fuses THIS SESSION'S estimated
+ *   cost into the shipped composer stats strip, priced locally from the
+ *   `tokenUsage` session projection with the package's price table.
+ * No RPC, no store of its own beyond popover visibility.
+ * @module @deepseek-ai/dsh-client-ui-deepseek-billing/client
+ */
+import type { ClientContext } from '@deepseek-ai/dsh-client-runtime/client';
+import { type BillingKey } from './locales.ts';
+export type { BillingKey } from './locales.ts';
+declare module '@deepseek-ai/dsh-client-ui-slots' {
+    interface LocaleNamespaceMap {
+        /** Billing widget copy. */
+        billing: BillingKey;
+    }
 }
+/** Required services: the two slots, the session kit, and the copy. */
+export declare const inject: string[];
+/**
+ * Client plugin body: register the dictionaries and the two surfaces.
+ * @param ctx - client root context.
+ */
+export declare function apply(ctx: ClientContext): void;
+//# sourceMappingURL=index.d.ts.map
